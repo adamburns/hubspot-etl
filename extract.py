@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from urllib.parse import urlencode
 from urllib.request import urlopen
+from time import sleep
 
 
 def load_key():
@@ -24,7 +25,7 @@ def download_data(url):
         return data
 
 
-def run(hasMore = True):
+def extract(hasMore = True):
     params = [('includeAssociations', 'true'), 
               ('limit', '250'), 
               ('properties', 'dealname'),
@@ -44,12 +45,6 @@ def run(hasMore = True):
         temp_data = download_data(build_url(url_prefix, params, offset))
         data += temp_data['deals']
         hasMore = temp_data['hasMore']
-        print('hasMore: \t' + str(hasMore))
         offset = temp_data['offset']
-        print('offset: \t' + str(offset))
-    print(len(data))
-    with open('df.json', 'w') as json_file:
-        json.dump(data, json_file)
-        print('We saved the file!')
-
-run()
+        sleep(1)
+    return data
