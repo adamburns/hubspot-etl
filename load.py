@@ -17,46 +17,49 @@ def generate_engine():
 
 
 def load(data):
-    engine = create_engine(generate(engine))
-    data.to_sql('Temp Hubspot Deals', engine)
-    upsert = 'INSERT INTO "Hubspot Deals"
-       (index,
-        portalId,
-        dealId,
-        properties_dealname_value,
-        properties_hubspot_owner_id_value,
-        properties_dealstage_value,
-        properties_hs_object_id_value,
-        properties_createdate_value,
-        properties_amount_value,
-        properties_dealtype_value,
-        propertie_closedate_value) AS A
-    SELECT
-        index,
-        portalId,
-        dealId,
-        properties_dealname_value,
-        properties_hubspot_owner_id_value,
-        properties_dealstage_value,
-        properties_hs_object_id_value,
-        properties_createdate_value,
-        properties_amount_value,
-        properties_dealtype_value,
-        properties_closedate_value
-    FROM
-        "Temp Hubspot Deals" AS B
-    ON CONFLICT (dealId) DO UPDATE SET
-    index = B.index,
-    portalId = B.portalId,
-    dealId = B.dealId,
-    properties_dealname_value = B.properties_dealname_value,
-    properties_hubspot_owner_id_value = B.properties_hubspot_owner_id_value,
-    properties_dealstage_value = B.properties_dealstage_value,
-    properties_hs_object_id_value = B.properties_hs_object_id_value,
-    properties_createdate_value = B.properties_createdate_value,
-    properties_amount_value = B.properties_amount_value,
-    properties_dealtype_value = B.properties_dealtype_value,
-    properties_closedate_value = B.properties_closedate_value;'
+    engine = create_engine(generate_engine())
+    data.to_sql('Temp Hubspot Deals', engine, if_exists='replace')
+    connection = engine.connect()
+    upsert = """
+INSERT INTO "Hubspot Deals"
+	("index",
+	"portalId",
+	"dealId",
+	properties_dealname_value,
+	properties_hubspot_owner_id_value,
+	properties_dealstage_value,
+	properties_hs_object_id_value,
+	properties_createdate_value,
+	properties_amount_value,
+	properties_dealtype_value,
+	properties_closedate_value)
+SELECT
+	"index",
+	"portalId",
+	"dealId",
+	properties_dealname_value,
+	properties_hubspot_owner_id_value,
+	properties_dealstage_value,
+	properties_hs_object_id_value,
+	properties_createdate_value,
+	properties_amount_value,
+	properties_dealtype_value,
+	properties_closedate_value
+FROM
+	"Temp Hubspot Deals"
+ON CONFLICT ("dealId") DO UPDATE SET
+	"index" = EXCLUDED."index",
+    "portalId" = EXCLUDED."portalId",
+    "dealId" = EXCLUDED."dealId",
+    properties_dealname_value = EXCLUDED.properties_dealname_value,
+    properties_hubspot_owner_id_value = EXCLUDED.properties_hubspot_owner_id_value,
+    properties_dealstage_value = EXCLUDED.properties_dealstage_value,
+    properties_hs_object_id_value = EXCLUDED.properties_hs_object_id_value,
+    properties_createdate_value = EXCLUDED.properties_createdate_value,
+    properties_amount_value = EXCLUDED.properties_amount_value,
+    properties_dealtype_value = EXCLUDED.properties_dealtype_value,
+    properties_closedate_value = EXCLUDED.properties_closedate_value;
+    """
     connection.execute(upsert)
-    drop = 'DROP TABLE "Temp Hubspot Deals";'
+    drop = 'DROP TABLE \"Temp Hubspot Deals\";'
     connection.execute(drop)
